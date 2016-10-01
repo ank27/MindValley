@@ -5,6 +5,8 @@ import android.graphics.Color;
 import android.os.Bundle;
 import android.support.design.widget.CollapsingToolbarLayout;
 import android.support.design.widget.CoordinatorLayout;
+import android.support.design.widget.FloatingActionButton;
+import android.support.design.widget.Snackbar;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
@@ -26,6 +28,7 @@ public class PinDetailsActivity extends AppCompatActivity {
     String TAG="PinDetailActivity";
     ImageView pinDetailImage,linkImage;
     TextView username,category;
+    FloatingActionButton fabLike;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -43,6 +46,7 @@ public class PinDetailsActivity extends AppCompatActivity {
         linkImage=(ImageView) findViewById(R.id.linkImage);
         username=(TextView) findViewById(R.id.username);
         category=(TextView) findViewById(R.id.category);
+        fabLike=(FloatingActionButton) findViewById(R.id.fabLike);
         toolbar.setNavigationOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -60,6 +64,14 @@ public class PinDetailsActivity extends AppCompatActivity {
         category.setText(categories.substring(0,categories.length()-1));
 
         loadPinImage();
+
+        fabLike.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Snackbar snackbar = Snackbar.make(coordinatorDetail, "Pin Liked", Snackbar.LENGTH_LONG);
+                snackbar.show();
+            }
+        });
     }
 
     private void loadPinImage() {
