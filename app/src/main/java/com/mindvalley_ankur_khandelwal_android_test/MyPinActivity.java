@@ -14,8 +14,10 @@ import android.support.v7.widget.Toolbar;
 import android.view.View;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.widget.Button;
 import android.widget.ListView;
 import android.widget.ProgressBar;
+import android.widget.RelativeLayout;
 
 import org.json.JSONArray;
 import com.android.volley.Request;
@@ -27,6 +29,7 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.mindvalley_ankur_khandelwal_android_test.Adapter.MyPinsAdapter;
 import com.mindvalley_ankur_khandelwal_android_test.Model.PinModel;
+import com.mindvalley_ankur_khandelwal_android_test.Utils.ConnectionDetector;
 import com.mindvalley_ankur_khandelwal_android_test.Utils.Logger;
 import com.mindvalley_ankur_khandelwal_android_test.Utils.OnItemClickListner;
 import com.mindvalley_ankur_khandelwal_android_test.Utils.VolleySingleton;
@@ -49,6 +52,9 @@ public class MyPinActivity extends AppCompatActivity {
     Activity activity;
     ArrayList<PinModel> pinModels;
     static boolean is_swipe_refresh=false;
+    RelativeLayout no_internet_layout;
+    Button btnRetry;
+    ConnectionDetector connectionDetector;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -62,34 +68,25 @@ public class MyPinActivity extends AppCompatActivity {
         floatingActionButton = (FloatingActionButton) findViewById(R.id.fabUser);
         coordinatorLayout = (CoordinatorLayout) findViewById(R.id.coordinatorLayout);
         progressBar=(ProgressBar) findViewById(R.id.progressBar);
+        no_internet_layout=(RelativeLayout) findViewById(R.id.no_internet_layout);
+        btnRetry=(Button) findViewById(R.id.btnRetry);
         final GridLayoutManager layoutManager= new GridLayoutManager(activity, 2);
         recyclerStaggered.setHasFixedSize(true);
         recyclerStaggered.setLayoutManager(layoutManager);
-        loadPinData();
+        connectionDetector=new ConnectionDetector(MyPinActivity.this);
+        checkNetworkConnection();
 
         swipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
             @Override
             public void onRefresh() {
                 // Refresh items
-                loadPinData();
+                checkNetworkConnection();
             }
         });
 
         swipeRefreshLayout.setColorSchemeResources(android.R.color.holo_red_light,android.R.color.holo_blue_bright,
                 android.R.color.holo_green_light, android.R.color.holo_orange_light);
 
-        recyclerStaggered.addOnScrollListener(new RecyclerView.OnScrollListener() {
-            @Override
-            public void onScrollStateChanged(RecyclerView recyclerView, int newState) {
-                super.onScrollStateChanged(recyclerView, newState);
-            }
-
-            @Override
-            public void onScrolled(RecyclerView recyclerView, int dx, int dy) {
-                super.onScrolled(recyclerView, dx, dy);
-                swipeRefreshLayout.setEnabled(true);
-            }
-        });
 
         floatingActionButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -99,6 +96,23 @@ public class MyPinActivity extends AppCompatActivity {
             }
         });
 
+        btnRetry.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                checkNetworkConnection();
+            }
+        });
+
+    }
+
+    private void checkNetworkConnection() {
+        if(connectionDetector.isConnectedToInternet()){
+            loadPinData();
+        }else {
+            progressBar.setVisibility(View.GONE);
+            swipeRefreshLayout.setVisibility(View.GONE);
+            no_internet_layout.setVisibility(View.VISIBLE);
+        }
     }
 
     private void loadPinData() {
@@ -125,6 +139,7 @@ public class MyPinActivity extends AppCompatActivity {
                 recyclerStaggered.setVisibility(View.VISIBLE);
                 swipeRefreshLayout.setVisibility(View.VISIBLE);
                 progressBar.setVisibility(View.GONE);
+                no_internet_layout.setVisibility(View.GONE);
                 swipeRefreshLayout.setRefreshing(false);
 
                 pinsAdapter.setOnItemClickListener(new OnItemClickListner() {
@@ -144,9 +159,11 @@ public class MyPinActivity extends AppCompatActivity {
         return new Response.ErrorListener() {
             @Override
             public void onErrorResponse(VolleyError error) {
+                Logger.d(TAG,error.getMessage());
                 swipeRefreshLayout.setVisibility(View.VISIBLE);
                 recyclerStaggered.setVisibility(View.VISIBLE);
-                swipeRefreshLayout.setRefreshing(false);
+//                swipeRefreshLayout.setRefreshing(false);
+                no_internet_layout.setVisibility(View.GONE);
                 progressBar.setVisibility(View.GONE);
                 Snackbar snackbar = Snackbar.make(coordinatorLayout, "Error while fetching...swipe down to load again!!!", Snackbar.LENGTH_LONG);
                 snackbar.show();

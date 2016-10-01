@@ -29,6 +29,7 @@ public class PinDetailsActivity extends AppCompatActivity {
     ImageView pinDetailImage,linkImage;
     TextView username,category;
     FloatingActionButton fabLike;
+    ImageLoader imageLoader;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -61,9 +62,10 @@ public class PinDetailsActivity extends AppCompatActivity {
         for(int i=0;i<selectedPin.categories.size();i++){
              categories+=selectedPin.categories.get(i).title+", ";
         }
-        category.setText(categories.substring(0,categories.length()-1));
-
+        category.setText(categories.substring(0,categories.length()-2));
+        imageLoader = VolleySingleton.getImageLoader();
         loadPinImage();
+        imageLoader.get(selectedPin.urls.regular, ImageLoader.getImageListener(linkImage, R.drawable.ic_empty, R.drawable.ic_empty));
 
         fabLike.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -75,10 +77,7 @@ public class PinDetailsActivity extends AppCompatActivity {
     }
 
     private void loadPinImage() {
-        ImageLoader imageLoader = VolleySingleton.getImageLoader();
         imageLoader.get(selectedPin.urls.regular, ImageLoader.getImageListener(pinDetailImage, R.drawable.ic_empty, R.drawable.ic_empty));
-
-        imageLoader.get(selectedPin.links.html, ImageLoader.getImageListener(linkImage, R.drawable.ic_empty, R.drawable.ic_empty));
     }
 
     @Override
